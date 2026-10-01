@@ -104,3 +104,21 @@ def find_modified_files(path_old_folder, path_new_folder):
     for modified_file in modified:
         print("~",modified_file)
             
+def compare_folders(path_old_folder, path_new_folder, added=True, deleted=True, modified=True):
+    """
+   Compare two folders and display the selected differences.
+
+   Args:
+       path_old_folder (str): Path to the old folder.
+       path_new_folder (str): Path to the new folder.
+       added (bool): If True, display added files.
+       deleted (bool): If True, display deleted files.
+       modified (bool): If True, display modified files.
+   """
+    
+    if added :
+        find_added_files(path_old_folder, path_new_folder)
+    if deleted :
+        find_deleted_files(path_old_folder, path_new_folder)
+    if modified :
+        find_modified_files(path_old_folder, path_new_folder)
