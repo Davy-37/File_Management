@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple
 
@@ -109,3 +110,25 @@ def by_size(path: Path) -> str:
     for limit, name in SIZE_CATEGORIES:
         if limit is None or size <= limit:
             return name
+
+
+def by_date(path: Path) -> str:
+    """Return the modification month of an existing file as ``YYYY-MM``.
+
+    The date read is the last modification time (``st_mtime``). It is
+    converted using UTC, not the local time zone, so the result is the same
+    on every machine: a file modified on January 31st at 23:30 UTC is always
+    ``"2024-01"``, wherever the code runs.
+
+    Args:
+        path: Path of the file to categorize.
+
+    Returns:
+        The month of the last modification, such as ``"2024-03"``.
+
+    Raises:
+        FileNotFoundError: If ``path`` does not exist. The error is not
+            caught here; callers decide how to report it.
+    """
+    mtime = path.stat().st_mtime
+    return datetime.fromtimestamp(mtime, tz=timezone.utc).strftime("%Y-%m")
