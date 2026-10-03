@@ -1,3 +1,4 @@
+import filecmp
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -132,3 +133,29 @@ def by_date(path: Path) -> str:
     """
     mtime = path.stat().st_mtime
     return datetime.fromtimestamp(mtime, tz=timezone.utc).strftime("%Y-%m")
+
+
+def resolve_destination(source: Path, directory: Path) -> Path | None:
+    """Choose the path where ``source`` should be copied in ``directory``.
+
+    Candidates are tried in order: ``name.ext``, ``name_1.ext``,
+    ``name_2.ext``, and so on. The first candidate that does not exist is
+    returned. If a candidate already exists with the same content as
+    ``source``, nothing needs to be copied and ``None`` is returned.
+
+    Args:
+        source: Path of the existing file to copy.
+        directory: Folder that will receive the copy.
+
+    Returns:
+        A free destination path, or ``None`` if an identical file is already
+        present in ``directory``.
+    """
+    candidate = directory / source.name
+    counter = 0
+    while candidate.exists():
+        if filecmp.cmp(source, candidate, shallow=False):
+            return None
+        counter += 1
+        candidate = directory / f"{source.stem}_{counter}{source.suffix}"
+    return candidate
