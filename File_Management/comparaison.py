@@ -8,6 +8,9 @@ def find_added_files(path_old_folder, path_new_folder):
     Args:
         path_old_folder (str): Path to the old folder.
         path_new_folder (str): Path to the new folder.
+    
+    Returns:
+       None
     """
     
     old_folder = Path(path_old_folder)
@@ -37,6 +40,9 @@ def find_deleted_files(path_old_folder, path_new_folder):
     Args:
         path_old_folder (str): Path to the old folder.
         path_new_folder (str): Path to the new folder.
+        
+    Returns:
+        None
     """
     
     old_folder = Path(path_old_folder)
@@ -66,6 +72,9 @@ def find_modified_files(path_old_folder, path_new_folder):
     Args:
         path_old_folder (str): Path to the old folder.
         path_new_folder (str): Path to the new folder.
+        
+    Returns:
+        None
     """
     
     old_folder = Path(path_old_folder)
@@ -106,14 +115,17 @@ def find_modified_files(path_old_folder, path_new_folder):
             
 def compare_folders(path_old_folder, path_new_folder, added=True, deleted=True, modified=True):
     """
-   Compare two folders and display the selected differences.
+    Compare two folders and display the selected differences.
 
-   Args:
-       path_old_folder (str): Path to the old folder.
-       path_new_folder (str): Path to the new folder.
-       added (bool): If True, display added files.
-       deleted (bool): If True, display deleted files.
-       modified (bool): If True, display modified files.
+    Args:
+        path_old_folder (str): Path to the old folder.
+        path_new_folder (str): Path to the new folder.
+        added (bool): If True, display added files.
+        deleted (bool): If True, display deleted files.
+        modified (bool): If True, display modified files.
+       
+    Returns:
+        None
    """
     
     if added :
