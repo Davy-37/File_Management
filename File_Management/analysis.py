@@ -2,6 +2,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import NamedTuple
 
+KB = 1024
+MB = 1024 * KB
+
+# Upper bounds (inclusive, in bytes) in ascending order; None means no limit.
+SIZE_CATEGORIES = (
+    (10 * KB, "minuscule"),
+    (100 * KB, "petit"),
+    (1 * MB, "moyen"),
+    (16 * MB, "grand"),
+    (128 * MB, "énorme"),
+    (None, "gigantesque"),
+)
+
+
 class CopiedEntry(NamedTuple):
     """A file that was successfully copied.
 
@@ -66,3 +80,32 @@ def by_extension(path: Path) -> str:
         'sans_extension'
     """
     return path.suffix.lstrip(".").lower() or "sans_extension"
+
+
+def by_size(path: Path) -> str:
+    """Return the size category of an existing file.
+
+    Unlike :func:`by_extension`, this function reads the disk (file size).
+    Boundaries are inclusive: a file of exactly 10 KB is ``"minuscule"`` and
+    a file of 10 KB + 1 byte is ``"petit"``. 1 KB is 1024 bytes.
+
+    Categories: ``vide`` (0 bytes), ``minuscule`` (up to 10 KB), ``petit``
+    (up to 100 KB), ``moyen`` (up to 1 MB), ``grand`` (up to 16 MB),
+    ``énorme`` (up to 128 MB) and ``gigantesque`` (anything larger).
+
+    Args:
+        path: Path of the file to categorize.
+
+    Returns:
+        The name of the size category.
+
+    Raises:
+        FileNotFoundError: If ``path`` does not exist. The error is not
+            caught here; callers decide how to report it.
+    """
+    size = path.stat().st_size
+    if size == 0:
+        return "vide"
+    for limit, name in SIZE_CATEGORIES:
+        if limit is None or size <= limit:
+            return name
