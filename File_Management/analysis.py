@@ -1,8 +1,11 @@
 import filecmp
+import shutil
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import NamedTuple
+
 
 KB = 1024
 MB = 1024 * KB
@@ -159,3 +162,69 @@ def resolve_destination(source: Path, directory: Path) -> Path | None:
         counter += 1
         candidate = directory / f"{source.stem}_{counter}{source.suffix}"
     return candidate
+
+
+CRITERIA: dict[str, Callable[[Path], str]] = {
+    "extension": by_extension,
+    "size": by_size,
+    "date": by_date,
+}
+
+DEFAULT_DEST_NAME = "classified"
+
+
+def File_classify(
+    fichiers: Iterable[Path],
+    critère: str,
+    dest_root: Path | None = None,
+) -> ClassifyResult:
+    """Copy each file into ``dest_root/<category>/`` according to a criterion.
+
+    Files are copied with their metadata (``shutil.copy2``). The originals
+    are never modified. Category folders are created when missing and reused
+    otherwise.
+
+    Collisions: if a file with the same name but different content already
+    exists, the copy is renamed with a numeric suffix (``rapport_1.pdf``).
+    If an identical file is already present, the file is skipped.
+
+    Args:
+        fichiers: Paths of the files to classify.
+        critère: ``"extension"``, ``"size"`` or ``"date"``.
+        dest_root: Root folder receiving the category folders. Defaults to a
+            ``classified`` folder in the current directory.
+
+    Returns:
+        A :class:`ClassifyResult` with ``copied`` (source and final path),
+        ``skipped`` (already present) and ``failed`` (path and reason).
+
+    Raises:
+        ValueError: If ``critère`` is unknown. Raised before any file or
+            folder is touched.
+
+    A problem on one file (missing file, permission error...) is recorded in
+    ``failed`` and processing continues with the next file.
+    """
+    try:
+        categorize = CRITERIA[critère]
+    except KeyError:
+        valid = ", ".join(sorted(CRITERIA))
+        raise ValueError(f"Unknown criterion {critère!r}; expected one of: {valid}") from None
+
+    root = Path(dest_root) if dest_root is not None else Path.cwd() / DEFAULT_DEST_NAME
+    result = ClassifyResult()
+
+    for source in map(Path, fichiers):
+        try:
+            directory = root / categorize(source)
+            directory.mkdir(parents=True, exist_ok=True)
+            destination = resolve_destination(source, directory)
+            if destination is None:
+                result.skipped.append(source)
+                continue
+            shutil.copy2(source, destination)
+            result.copied.append(CopiedEntry(source, destination))
+        except OSError as error:
+            result.failed.append(FailedEntry(source, str(error)))
+
+    return result
