@@ -33,6 +33,9 @@ This project is developed by a team of three students. Contributions, bug report
 4. Push the branch: `git push origin feature/my-feature`
 5. Open a Pull Request
 
+## TEST
+run test with : python -m pytest (maybe change after)
+
 ## License
 
 Distributed under the MIT License. See [LICENSE](LICENSE) for details.
